@@ -170,7 +170,7 @@ public class ToqActivity extends Activity {
 
     private void sendNotification() {
 
-        Toast.makeText(this, "inside sendNotification ", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "inside sendNotification ", Toast.LENGTH_SHORT).show();
 
         String[] message = new String[2];
         message[0] = parseHeader;
@@ -185,7 +185,7 @@ public class ToqActivity extends Activity {
         notificationCard.setVibeAlert(true);
         // Create a notification with the NotificationTextCard we made
 
-        Toast.makeText(this, "mDeckOfCardsManager="+mDeckOfCardsManager, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "mDeckOfCardsManager="+mDeckOfCardsManager, Toast.LENGTH_SHORT).show();
 
         RemoteToqNotification notification = new RemoteToqNotification(this, notificationCard);
 
@@ -280,13 +280,6 @@ public class ToqActivity extends Activity {
      */
     private void addSimpleTextCard(String header, String title, String message) {
         //sendParseObject();
-        Toast.makeText(this, "We are here", Toast.LENGTH_SHORT).show();
-        if (oneParse != null) {
-            Toast.makeText(this, "We are here", Toast.LENGTH_SHORT).show();
-            header = oneParse.getString("header");
-            message = oneParse.getString("msg");
-            Toast.makeText(this, "We are here???", Toast.LENGTH_SHORT).show();
-        }
 
         CardImage mCardImage;
         try {
@@ -354,8 +347,6 @@ public class ToqActivity extends Activity {
 
         DeckOfCardsLauncherIcon whiteIcon = null;
         DeckOfCardsLauncherIcon colorIcon = null;
-        statusTextView= (TextView)findViewById(R.id.status_text);
-        statusTextView.setText("Initialised");
 
         //START: ADDED FOR SALECELL ...add a new deckofcards to existing when you click on the notification
         deckOfCardsManagerListener= new DeckOfCardsManagerListenerImpl();
