@@ -83,6 +83,8 @@
     <orderEntry type="library" exported="" name="android-support-v4" level="project" />
     <orderEntry type="library" exported="" name="android-toq-api-1.5.2" level="project" />
     <orderEntry type="library" exported="" name="GeLoSDK" level="project" />
+    <orderEntry type="library" exported="" name="Parse-1.8.0" level="project" />
+    <orderEntry type="library" exported="" name="bolts-android-1.1.4" level="project" />
   </component>
 </module>
 

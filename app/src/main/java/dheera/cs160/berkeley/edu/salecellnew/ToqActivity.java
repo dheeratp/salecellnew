@@ -21,6 +21,11 @@ import android.widget.Toast;
 
 import com.gelo.gelosdk.GeLoBeaconManager;
 import com.gelo.gelosdk.Model.Beacons.GeLoBeacon;
+import com.parse.GetCallback;
+import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.Constants;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.Card;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.ListCard;
@@ -66,6 +71,10 @@ public class ToqActivity extends Activity {
     View uninstallDeckOfCardsButton;
     private TextView statusTextView;
 
+    private ParseObject oneParse = null;
+    private String parseHeader = "";
+    private String parseMsg = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +88,7 @@ public class ToqActivity extends Activity {
         ml.startScanningForBeacons();
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new UpdateBeacon(), 0, 2*200);
+        Parse.initialize(this, "kupjZolr8uv3s5JM9m7ysn5bmSoWp1MUD0aQQdpI", "O85h5vQavnuOWWWPxSqmI8oRGbHM0sDSn7rDtS6B");
     }
 
     /**
@@ -123,7 +133,8 @@ public class ToqActivity extends Activity {
         findViewById(R.id.send_notif_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendNotification();
+                sendParseObject();
+                //sendNotification();
             }
         });
 
@@ -162,7 +173,7 @@ public class ToqActivity extends Activity {
         Toast.makeText(this, "inside sendNotification ", Toast.LENGTH_SHORT).show();
 
         String[] message = new String[2];
-        message[0] = "Jeans 20% Off";
+        message[0] = parseHeader;
         message[1] = "See coupon inside SaleCell watch app";
         // Create a NotificationTextCard
         NotificationTextCard notificationCard = new NotificationTextCard(System.currentTimeMillis(),
@@ -181,7 +192,8 @@ public class ToqActivity extends Activity {
         try {
             // Send the notification
             mDeckOfCardsManager.sendNotification(notification);
-            addSimpleTextCard("SaleCell", "20% Off Jeans", "For a limited time get 20% off upto 2 jeans.");
+            //sendParseObject();
+            addSimpleTextCard("SaleCell", parseHeader, parseMsg);
             Toast.makeText(this, "Sent Notification", Toast.LENGTH_SHORT).show();
         } catch (RemoteDeckOfCardsException e) {
             e.printStackTrace();
@@ -244,10 +256,38 @@ public class ToqActivity extends Activity {
         }
     }
 
+    private void sendParseObject() {
+        ParseQuery<ParseObject> query = ParseQuery.getQuery("test");
+        query.getInBackground("fRjO3ajfnD", new GetCallback<ParseObject>() {
+            public void done(ParseObject object, ParseException e) {
+                if (e == null) {
+                    parseHeader = object.getString("header");
+                    parseMsg = object.getString("msg");
+                    sendNotification();
+                    //addSimpleTextCard(header, "SaleCell", msg);
+                    // object will be your game score
+                } else {
+                    parseHeader = "Jeans 20% Off";
+                    parseMsg = "Limited time offer get upto 2 jeans for 20% off.";
+                    sendNotification();
+                    // something went wrong
+                }
+            }
+        });
+    }
     /**
      * Adds a deck of cards to the applet
      */
     private void addSimpleTextCard(String header, String title, String message) {
+        //sendParseObject();
+        Toast.makeText(this, "We are here", Toast.LENGTH_SHORT).show();
+        if (oneParse != null) {
+            Toast.makeText(this, "We are here", Toast.LENGTH_SHORT).show();
+            header = oneParse.getString("header");
+            message = oneParse.getString("msg");
+            Toast.makeText(this, "We are here???", Toast.LENGTH_SHORT).show();
+        }
+
         CardImage mCardImage;
         try {
             mCardImage = new CardImage("card.image.1", getBitmap("barcode.jpg"));
