@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--<style name="customTheme" parent="android:Theme">-->
+        <!--<item name="android:windowTitleBackgroundStyle">@style/WindowTitleBackground</item>-->
+        <!--<item name="android:textSize">35sp</item>-->
+        <!--<item name="android:windowTitleSize">50dip</item>-->
+        <!--<item name="android:icon">@drawable/shop3</item>-->
+    <!--</style>-->
+</resources>
