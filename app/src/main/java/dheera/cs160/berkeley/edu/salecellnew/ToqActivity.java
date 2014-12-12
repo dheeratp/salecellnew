@@ -1,12 +1,16 @@
 package dheera.cs160.berkeley.edu.salecellnew;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +19,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gelo.gelosdk.GeLoBeaconManager;
+import com.gelo.gelosdk.Model.Beacons.GeLoBeacon;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.Constants;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.Card;
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.card.ListCard;
@@ -31,10 +37,18 @@ import com.qualcomm.toq.smartwatch.api.v1.deckofcards.resource.DeckOfCardsLaunch
 import com.qualcomm.toq.smartwatch.api.v1.deckofcards.util.ParcelableUtil;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class ToqActivity extends Activity {
+
+    GeLoBeaconManager ml;
+    ArrayList<GeLoBeacon> beacons;
+    Vibrator v;
+    int minRssi = -100;
 
     private final static String PREFS_FILE= "prefs_file";
     private final static String DECK_OF_CARDS_KEY= "deck_of_cards_key";
@@ -61,6 +75,10 @@ public class ToqActivity extends Activity {
         toqReceiver = new ToqBroadcastReceiver();
         init();
         setupUI();
+        ml = GeLoBeaconManager.sharedInstance(getApplicationContext());
+        ml.startScanningForBeacons();
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new UpdateBeacon(), 0, 2*200);
     }
 
     /**
@@ -163,6 +181,7 @@ public class ToqActivity extends Activity {
         try {
             // Send the notification
             mDeckOfCardsManager.sendNotification(notification);
+            addSimpleTextCard("SaleCell", "20% Off Jeans", "For a limited time get 20% off upto 2 jeans.");
             Toast.makeText(this, "Sent Notification", Toast.LENGTH_SHORT).show();
         } catch (RemoteDeckOfCardsException e) {
             e.printStackTrace();
@@ -228,24 +247,36 @@ public class ToqActivity extends Activity {
     /**
      * Adds a deck of cards to the applet
      */
-    private void addSimpleTextCard() {
+    private void addSimpleTextCard(String header, String title, String message) {
+        CardImage mCardImage;
+        try {
+            mCardImage = new CardImage("card.image.1", getBitmap("barcode.jpg"));
+
+        } catch (Exception e){
+            e.printStackTrace();
+            System.out.println("Can't get picture icon");
+            Toast.makeText(this, "Hola", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         ListCard listCard = mRemoteDeckOfCards.getListCard();
         int currSize = listCard.size();
 
         // Create a SimpleTextCard with 1 + the current number of SimpleTextCards
         SimpleTextCard simpleTextCard = new SimpleTextCard(Integer.toString(currSize+1));
 
-        simpleTextCard.setHeaderText("Header: " + Integer.toString(currSize+1));
-        simpleTextCard.setTitleText("Title: " + Integer.toString(currSize+1));
-        String[] messages = {"Message: " + Integer.toString(currSize+1)};
+        simpleTextCard.setHeaderText(header);
+        simpleTextCard.setTitleText(title);
+        String[] messages = {message};
         simpleTextCard.setMessageText(messages);
         simpleTextCard.setReceivingEvents(false);
         simpleTextCard.setShowDivider(true);
-
+        simpleTextCard.setCardImage(mRemoteResourceStore, mCardImage);
+        mRemoteResourceStore.addResource(mCardImage);
         listCard.add(simpleTextCard);
 
         try {
-            mDeckOfCardsManager.updateDeckOfCards(mRemoteDeckOfCards);
+            mDeckOfCardsManager.updateDeckOfCards(mRemoteDeckOfCards, mRemoteResourceStore);
         } catch (RemoteDeckOfCardsException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to Create SimpleTextCard", Toast.LENGTH_SHORT).show();
@@ -257,7 +288,6 @@ public class ToqActivity extends Activity {
         Intent intent = new Intent(getApplicationContext(), merchant.class);
         startActivity(intent);
     }
-
 
     private void removeDeckOfCards() {
         ListCard listCard = mRemoteDeckOfCards.getListCard();
@@ -590,11 +620,32 @@ public class ToqActivity extends Activity {
 
     }
 
-
     // Set status bar message
     private void setStatus(String msg){
         statusTextView.setText(msg);
     }
 
+    class UpdateBeacon extends TimerTask {
+        @Override
+        public void run() {
+            ToqActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    beacons = ml.getKnownBeacons();
+                    int rssi = 0;
+                    boolean notZero = true;
+                    if (beacons.isEmpty() != true) {
+                        for (GeLoBeacon i : beacons) {
+                            if (i.getBeaconId() == 554) {
+                                rssi = i.getSignalStregth();
+                            }
+                        }
+                    }
+                    TextView rView = (TextView) findViewById(R.id.near);
+                    rView.setText(Integer.toString(rssi));
+                }
+            });
+        }
+    }
 
 }
